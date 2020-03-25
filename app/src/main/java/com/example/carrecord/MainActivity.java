@@ -85,9 +85,9 @@ public class MainActivity extends AppCompatActivity {
                 } else if (totalSize % timePart == 0) {
 
                     final boolean charging = Utils.isCharging(MainActivity.this);
-                    Log.d(TAG, "onTick: 充电中="+charging);
+                    Log.d(TAG, "onTick: 充电中=" + charging);
                     // 如果不是充电中，停止录制视频
-                    if (!charging){
+                    if (!charging) {
                         goHome();
                         return;
                     }
@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
 
         initView();
 
-        startService(new Intent(this,DamonService.class));
+        startService(new Intent(this, DamonService.class));
 
 
         if (!Utils.phoneHas1024MB()) {
@@ -189,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
 
             c = Camera.open();
-            Log.d(TAG, "getCameraInstance: "+e.getMessage());
+            Log.d(TAG, "getCameraInstance: " + e.getMessage());
         }
         return c;  // returns null if camera is unavailable
     }
@@ -219,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Step 5: Set the preview output
         mMediaRecorder.setPreviewDisplay(mPreview.getHolder().getSurface());
-        mMediaRecorder.setVideoSize(960,720);
+        mMediaRecorder.setVideoSize(960, 720);
         mMediaRecorder.setOrientationHint(180);
 
         mMediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
@@ -257,7 +257,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
 
-
     public void stopRecord() {
 
         if (mMediaRecorder != null) {
@@ -267,16 +266,14 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mCamera != null) {
 
-            mCamera.setPreviewCallback(null) ;
+            mCamera.setPreviewCallback(null);
 
             mCamera.stopPreview();
             mCamera.release();
-            mCamera=null;
+            mCamera = null;
 
 
-
-
-        // take camera access back from MediaRecorder
+            // take camera access back from MediaRecorder
         }
 
     }
@@ -306,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
             mMediaRecorder.reset();   // clear recorder configuration
             mMediaRecorder.release(); // release the recorder object
             mMediaRecorder = null;
-                // lock camera for later use
+            // lock camera for later use
         }
     }
 
@@ -328,15 +325,17 @@ public class MainActivity extends AppCompatActivity {
         stopRecord();
 
         releaseCamera();
-        countDownTimer.cancel();
-        countDownTimer=null;
-        totalSize =0;
+        if (countDownTimer != null) {
+
+            countDownTimer.cancel();
+            countDownTimer = null;
+        }
+        totalSize = 0;
 
     }
 
 
-
-    public void goHome(){
+    public void goHome() {
 
 
         Intent intent = new Intent(Intent.ACTION_MAIN);
