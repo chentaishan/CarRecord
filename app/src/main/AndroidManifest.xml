@@ -25,7 +25,7 @@
 
         <activity
             android:name=".MainActivity" android:launchMode="singleInstance"
-            android:screenOrientation="sensorLandscape">
+            android:screenOrientation="reverseLandscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
