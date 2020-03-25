@@ -15,10 +15,10 @@ public class DamonService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+        return null;
     }
 
-    int delay = 1000*5;
+    int delay = 1000*2;
 
     @Override
     public void onCreate() {
@@ -36,11 +36,14 @@ public class DamonService extends Service {
                         Thread.sleep(delay);
                         final boolean charging = Utils.isCharging(DamonService.this);
 
-                        Log.d(TAG, "running--"+charging+"---"+Contants.isStarted);
-                        if (charging&&!Contants.isStarted){
+                        final boolean isVisible = Utils.isForeground(DamonService.this, "com.example.carrecord.MainActivity");
+
+
+
+                        if (charging&&!isVisible){
 //                            com.service_start_activity
 
-                            Contants.isStarted = true;
+
                             sendBroadcast(new Intent("com.service_start_activity"));
 
                         }
@@ -58,4 +61,10 @@ public class DamonService extends Service {
     }
 
     private static final String TAG = "DamonService";
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy: ");
+    }
 }

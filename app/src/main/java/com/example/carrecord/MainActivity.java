@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView mCaptureButton;
     long totalSize;
     //每段视频的时长5分钟
-    int timePart = 60 * 1;
+    int timePart = 60 * 5;
 
     int delay = 5;
     private TextView mTimer;
@@ -66,13 +66,15 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+    private FrameLayout preview;
+    private CountDownTimer countDownTimer;
 
     /**
      * 开启定时器 5分钟录屏一个文件
      */
     private void recordTimer() {
 
-        final CountDownTimer countDownTimer = new CountDownTimer(Long.MAX_VALUE, 1000) {
+        countDownTimer = new CountDownTimer(Long.MAX_VALUE, 1000) {
 
             @Override
             public void onTick(long millisUntilFinished) {
@@ -81,18 +83,18 @@ public class MainActivity extends AppCompatActivity {
                     startRecord();
 
                 } else if (totalSize % timePart == 0) {
-                    // 开始录制
-
-//                    stopRecord();
 
                     final boolean charging = Utils.isCharging(MainActivity.this);
+                    Log.d(TAG, "onTick: 充电中="+charging);
                     // 如果不是充电中，停止录制视频
                     if (!charging){
                         goHome();
                         return;
                     }
+                    // 开始录制
 
-                    Log.d(TAG, "onTick: 充电中="+charging);
+                    stopRecord();
+
                     startRecord();
                 }
                 // 一秒执行一次
@@ -122,11 +124,19 @@ public class MainActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         setContentView(R.layout.activity_main);
+
+
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
         initView();
 
         startService(new Intent(this,DamonService.class));
 
-        Contants.isStarted = true;
 
         if (!Utils.phoneHas1024MB()) {
             Utils.checkSDSize();
@@ -134,31 +144,15 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
         // 创建Camera实例
         mCamera = getCameraInstance();
 
-        if(mCamera==null){
-
-            Toast.makeText(this, "相机有误", Toast.LENGTH_SHORT).show();
-            return;
-        }
 
         // 创建预览视图，并作为Activity的内容
         mPreview = new CameraPreview(this, mCamera);
-        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+        preview = (FrameLayout) findViewById(R.id.camera_preview);
         preview.addView(mPreview);
 
-
-        if (!checkCameraHardware(this)) {
-
-            Toast.makeText(this, "摄像机有问题", Toast.LENGTH_SHORT).show();
-        }
 
         //倒计时5秒开始录屏
         handler.removeMessages(SEND_MSG);
@@ -208,10 +202,9 @@ public class MainActivity extends AppCompatActivity {
         mMediaRecorder = new MediaRecorder();
 
         // Step 1: Unlock and set camera to MediaRecorder
-        if (mCamera==null){
-            return false;
-        }
-//        mCamera.unlock();
+        mCamera.unlock();
+
+
         mMediaRecorder.setCamera(mCamera);
 
         // Step 2: Set sources
@@ -228,6 +221,24 @@ public class MainActivity extends AppCompatActivity {
         mMediaRecorder.setPreviewDisplay(mPreview.getHolder().getSurface());
         mMediaRecorder.setVideoSize(960,720);
         mMediaRecorder.setOrientationHint(180);
+
+        mMediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
+            @Override
+            public void onInfo(MediaRecorder mr, int what, int extra) {
+                if (MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED == what) {
+                    //到达最大时长
+                    stopRecord();
+                    startRecord();
+                } else if (MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED == what) {
+                    //到达最大尺寸
+
+                    stopRecord();
+                    startRecord();
+                }
+
+
+            }
+        });
         // Step 6: Prepare configured MediaRecorder
         try {
             mMediaRecorder.prepare();
@@ -256,9 +267,13 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mCamera != null) {
 
+            mCamera.setPreviewCallback(null) ;
+
             mCamera.stopPreview();
             mCamera.release();
-            mCamera = null;
+            mCamera=null;
+
+
 
 
         // take camera access back from MediaRecorder
@@ -268,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void startRecord() {
 
-        Utils.checkSDSize();
+
         // initialize video camera
         if (prepareVideoRecorder()) {
             // Camera is available and unlocked, MediaRecorder is prepared,
@@ -298,7 +313,7 @@ public class MainActivity extends AppCompatActivity {
     private void releaseCamera() {
         if (mCamera != null) {
             mCamera.release();        // release the camera for other applications
-            mCamera = null;
+
         }
     }
 
@@ -307,10 +322,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
+        Log.d(TAG, "onStop: ");
+        preview.removeAllViews();
 //        Toast.makeText(this, "onStop", Toast.LENGTH_SHORT).show();
         stopRecord();
 
         releaseCamera();
+        countDownTimer.cancel();
+        countDownTimer=null;
+        totalSize =0;
 
     }
 
@@ -318,7 +338,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void goHome(){
 
-        Contants.isStarted = false;
+
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.addCategory(Intent.CATEGORY_HOME);
