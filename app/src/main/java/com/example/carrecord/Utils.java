@@ -47,8 +47,8 @@ public class Utils {
 
     public static boolean phoneHas1024MB() {
         long maxSize = Environment.getExternalStorageDirectory().getFreeSpace();
-        Log.d(TAG, "checkSDSize: freeMB=" + maxSize);
         int freeMB = (int) (maxSize / (1024 * 1024));
+        Log.d(TAG, "checkSDSize: freeMB=" + freeMB);
         return freeMB>1024 ? true:false;
     }
 

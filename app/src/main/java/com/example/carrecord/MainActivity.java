@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     long totalSize;
     //每段视频的时长5分钟
     int timePart = 60 * 5;
+//    int timePart = 20;
 
     int delay = 5;
     private TextView mTimer;
@@ -93,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     // 开始录制
 
-                    stopRecord();
+                    onPauseRecord();
 
                     startRecord();
                 }
@@ -135,7 +136,6 @@ public class MainActivity extends AppCompatActivity {
 
         initView();
 
-        startService(new Intent(this, DamonService.class));
 
 
         if (!Utils.phoneHas1024MB()) {
@@ -143,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "手机SD卡空间不足！", Toast.LENGTH_LONG).show();
 
         }
+        startService(new Intent(this, DamonService.class));
 
         // 创建Camera实例
         mCamera = getCameraInstance();
@@ -150,6 +151,9 @@ public class MainActivity extends AppCompatActivity {
 
         // 创建预览视图，并作为Activity的内容
         mPreview = new CameraPreview(this, mCamera);
+
+
+
         preview = (FrameLayout) findViewById(R.id.camera_preview);
         preview.addView(mPreview);
 
@@ -220,6 +224,7 @@ public class MainActivity extends AppCompatActivity {
         // Step 5: Set the preview output
         mMediaRecorder.setPreviewDisplay(mPreview.getHolder().getSurface());
         mMediaRecorder.setVideoSize(960, 720);
+        // 修正播放视频的方向
         mMediaRecorder.setOrientationHint(180);
 
         mMediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
@@ -227,12 +232,12 @@ public class MainActivity extends AppCompatActivity {
             public void onInfo(MediaRecorder mr, int what, int extra) {
                 if (MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED == what) {
                     //到达最大时长
-                    stopRecord();
+                    onPauseRecord();
                     startRecord();
                 } else if (MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED == what) {
                     //到达最大尺寸
 
-                    stopRecord();
+                    onPauseRecord();
                     startRecord();
                 }
 
@@ -264,17 +269,7 @@ public class MainActivity extends AppCompatActivity {
             mMediaRecorder.stop();  // stop the recording
             releaseMediaRecorder(); // release the MediaRecorder object
         }
-        if (mCamera != null) {
 
-            mCamera.setPreviewCallback(null);
-
-            mCamera.stopPreview();
-            mCamera.release();
-            mCamera = null;
-
-
-            // take camera access back from MediaRecorder
-        }
 
     }
 
@@ -315,13 +310,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void onPauseRecord(){
+        if (mMediaRecorder != null) {
+            // stop recording and release camera
+            mMediaRecorder.stop();  // stop the recording
+            releaseMediaRecorder(); // release the MediaRecorder object
+        }
+
+    }
+
     @Override
     protected void onStop() {
         super.onStop();
 
         Log.d(TAG, "onStop: ");
+
         preview.removeAllViews();
-//        Toast.makeText(this, "onStop", Toast.LENGTH_SHORT).show();
+
+
         stopRecord();
 
         releaseCamera();

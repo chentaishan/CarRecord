@@ -37,7 +37,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
             parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
 
-            List<Camera.Size> sizeList = parameters.getSupportedPreviewSizes();//获取所有支持的camera尺寸
+//            List<Camera.Size> sizeList = parameters.getSupportedPreviewSizes();//获取所有支持的camera尺寸
 
             //获取一个最为适配的camera.size
 //            optionSize = getOptimalPreviewSize(sizeList,  getHeight(), getWidth());
