@@ -143,7 +143,6 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "手机SD卡空间不足！", Toast.LENGTH_LONG).show();
 
         }
-        startService(new Intent(this, DamonService.class));
 
         // 创建Camera实例
         mCamera = getCameraInstance();
@@ -337,6 +336,7 @@ public class MainActivity extends AppCompatActivity {
             countDownTimer = null;
         }
         totalSize = 0;
+        startService(new Intent(this, DamonService.class));
 
     }
 
