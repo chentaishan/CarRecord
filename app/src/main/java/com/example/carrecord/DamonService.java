@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.jakewharton.disklrucache.Util;
 
 public class DamonService extends Service {
     public DamonService() {
@@ -18,7 +17,7 @@ public class DamonService extends Service {
         return null;
     }
 
-    int delay = 1000*2;
+    int delay = 1000*5;
 
     @Override
     public void onCreate() {

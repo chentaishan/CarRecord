@@ -1,5 +1,6 @@
 package com.example.carrecord;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -21,10 +22,15 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.dfqin.grantor.PermissionListener;
+import com.github.dfqin.grantor.PermissionsUtil;
+
 import java.io.IOException;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -127,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
+
     }
 
 
@@ -134,34 +141,53 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        initView();
+
+        PermissionsUtil.requestPermission(getApplication(), new PermissionListener() {
+            @Override
+            public void permissionGranted(@NonNull String[] permissions) {
+                Toast.makeText(MainActivity.this, "马上开始录制视频", Toast.LENGTH_LONG).show();
 
 
 
-        if (!Utils.phoneHas1024MB()) {
-            Utils.checkSDSize();
-            Toast.makeText(this, "手机SD卡空间不足！", Toast.LENGTH_LONG).show();
 
-        }
-
-        // 创建Camera实例
-        mCamera = getCameraInstance();
-
-
-        // 创建预览视图，并作为Activity的内容
-        mPreview = new CameraPreview(this, mCamera);
+                initView();
 
 
 
-        preview = (FrameLayout) findViewById(R.id.camera_preview);
-        preview.addView(mPreview);
+                if (!Utils.phoneHas1024MB()) {
+                    Utils.checkSDSize();
+//                    Toast.makeText(this, "手机SD卡空间不足！", Toast.LENGTH_LONG).show();
+
+                }
+
+                // 创建Camera实例
+                mCamera = getCameraInstance();
 
 
-        //倒计时5秒开始录屏
-        handler.removeMessages(SEND_MSG);
-        final Message message = new Message();
-        message.what = SEND_MSG;
-        handler.sendMessageDelayed(message, 1000);
+                // 创建预览视图，并作为Activity的内容
+                mPreview = new CameraPreview(MainActivity.this, mCamera);
+
+
+
+                preview = (FrameLayout) findViewById(R.id.camera_preview);
+                preview.addView(mPreview);
+
+
+                //倒计时5秒开始录屏
+                handler.removeMessages(SEND_MSG);
+                final Message message = new Message();
+                message.what = SEND_MSG;
+                handler.sendMessageDelayed(message, 1000);
+            }
+
+            @Override
+            public void permissionDenied(@NonNull String[] permissions) {
+                Toast.makeText(MainActivity.this, "拒绝了访问摄像头", Toast.LENGTH_LONG).show();
+                finish();
+            }
+        }, Manifest.permission.CAMERA,Manifest.permission.WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE);
+
+
 
     }
 
@@ -222,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Step 5: Set the preview output
         mMediaRecorder.setPreviewDisplay(mPreview.getHolder().getSurface());
-        mMediaRecorder.setVideoSize(960, 720);
+        mMediaRecorder.setVideoSize(1280,720);
         // 修正播放视频的方向
         mMediaRecorder.setOrientationHint(180);
 
